@@ -48,14 +48,55 @@
 html {
     scroll-behavior: smooth;
     scroll-padding-top: 80px;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent scroll jumps on mobile */
+@media (max-width: 768px) {
+    html {
+        scroll-behavior: auto;
+    }
+    
+    html:not(:hover) {
+        scroll-behavior: smooth;
+    }
+    
+    body {
+        overflow-x: hidden;
+        position: relative;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Prevent layout shifts from images */
+    img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+    }
+    
+    /* Prevent focus from causing scroll */
+    *:focus {
+        scroll-margin-top: 80px;
+    }
+    
+    /* Prevent animation from causing scroll */
+    .reveal {
+        will-change: transform, opacity;
+    }
+    
+    .reveal.active {
+        will-change: auto;
+    }
 }
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--bg-primary);
     color: var(--text-primary);
-    line-height: 1.6;
     overflow-x: hidden;
+    position: relative;
+    line-height: 1.6;
     perspective: 1000px;
 }
 
@@ -170,6 +211,21 @@ img.lazy-loaded {
 .lazy-image {
     background: var(--bg-secondary);
     border-radius: 8px;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.lazy-image.lazy-loaded {
+    opacity: 1;
+}
+
+.lazy-image.lazy-error {
+    opacity: 1;
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border-color);
 }
 
 /* Scroll reveal animations */
@@ -1025,9 +1081,20 @@ nav {
     transform-style: preserve-3d;
 }
 
-.scroll-up-btn:hover {
+.scroll-up-btn:hover,
+.scroll-up-btn:focus {
     transform: translateY(-3px) translateZ(5px);
     background: var(--blue-700);
+    box-shadow: var(--card-shadow-hover);
+}
+
+.scroll-up-btn:active {
+    transform: translateY(-1px) translateZ(2px);
+}
+
+.scroll-up-btn:focus {
+    outline: 2px solid var(--blue-400);
+    outline-offset: 2px;
 }
 
 .scroll-up-btn.show {
@@ -1161,12 +1228,16 @@ nav {
 .about-image-3d {
     border-radius: 20px;
     max-width: 320px;
+    width: 100%;
+    height: auto;
     position: relative;
     z-index: 1;
     box-shadow: var(--card-shadow-3d);
     transition: all 0.5s cubic-bezier(0.23, 1, 0.320, 1);
     transform-style: preserve-3d;
     border: 3px solid var(--blue-200);
+    display: block;
+    object-fit: cover;
 }
 
 .about-image-3d:hover {
@@ -1473,7 +1544,7 @@ nav {
 }
 
 .card-front {
-    padding: 0;
+    padding: 1.5rem;
 }
 
 .card-back {
@@ -1540,6 +1611,18 @@ nav {
 .card-front .buttons {
     margin-top: auto;
     padding-top: 1rem;
+}
+
+.card-front img {
+    margin-bottom: 1rem;
+}
+
+.card-front .text {
+    margin-bottom: 0.75rem;
+}
+
+.card-front p {
+    margin-bottom: 1rem;
 }
 
 .project-tech {
@@ -2016,8 +2099,30 @@ select:focus {
     }
 }
 
+/* Tablet and Medium Screens */
+@media (max-width: 1024px) {
+    .max-width {
+        padding: 0 1.5rem;
+    }
+
+    .projects-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .about .about-content,
+    .skills .skills-content,
+    .contact .contact-content {
+        gap: 2rem;
+    }
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 968px) {
+    .max-width {
+        padding: 0 1.5rem;
+    }
+
     .home-content {
         grid-template-columns: 1fr;
         gap: 2rem;
@@ -2031,11 +2136,15 @@ select:focus {
 
     .hero-visual {
         order: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
     .orbital-system {
         width: 300px;
         height: 300px;
+        margin: 0 auto;
     }
 
     .animated-3d-shape {
@@ -2097,7 +2206,7 @@ select:focus {
 
     .project-3d-card {
         height: auto;
-        min-height: 400px;
+        min-height: 450px;
     }
 
     .card-inner {
@@ -2115,28 +2224,106 @@ select:focus {
     .card-back {
         display: none;
     }
+
+    .about .about-content,
+    .skills .skills-content {
+        flex-direction: column;
+    }
+
+    .about .column.left,
+    .skills .column.left {
+        width: 100%;
+        margin-bottom: 2rem;
+    }
+
+    .about .column.right,
+    .skills .column.right {
+        width: 100%;
+    }
+
+    .about-image-3d {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .imageContent {
+        margin-bottom: 2rem;
+    }
+
+    .projects-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .contact .contact-content {
+        flex-direction: column;
+    }
+
+    .contact .column {
+        width: 100%;
+    }
+
+    .social-links {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
 }
 
 @media (max-width: 768px) {
+    .max-width {
+        padding: 0 1.25rem;
+    }
+
+    .navbar {
+        padding: 1rem 0;
+    }
+
+    .navbar .max-width {
+        padding: 0 1.25rem;
+    }
+
     .menu-btn {
         display: block;
+        z-index: 1002;
     }
 
     .nav-menu {
         display: none;
-        position: absolute;
-        top: 100%;
+        position: fixed;
+        top: 0;
         left: 0;
         width: 100%;
+        height: 100vh;
         background: var(--bg-primary);
         flex-direction: column;
-        padding: 1rem;
+        padding: 5rem 1.5rem 2rem;
         border-bottom: 1px solid var(--border-color);
         box-shadow: var(--card-shadow);
+        z-index: 1001;
+        overflow-y: auto;
     }
 
     .nav-menu.active {
         display: flex;
+    }
+
+    .nav-menu li {
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+
+    .nav-menu li a {
+        display: block;
+        padding: 1rem;
+        width: 100%;
+        text-align: center;
+    }
+
+    .theme-toggle-item {
+        margin-top: 1rem;
+        width: 100%;
+        display: flex;
+        justify-content: center;
     }
 
     .orbital-system {
@@ -2197,13 +2384,9 @@ select:focus {
         font-size: 2rem;
     }
 
-    .theme-toggle-item {
-        margin-top: 1rem;
-    }
-
     .section-header {
         font-size: 1.75rem;
-        margin-bottom: 3rem;
+        margin-bottom: 2.5rem;
     }
 
     .section-header::before,
@@ -2215,20 +2398,29 @@ select:focus {
         font-size: 1.25rem;
     }
 
+    .hero-description {
+        font-size: 1rem;
+        padding: 0 1rem;
+    }
+
     .buttons {
         flex-direction: column;
+        gap: 0.75rem;
     }
 
     .buttons .btn {
         min-width: auto;
+        width: 100%;
     }
 
     .footer-content {
         grid-template-columns: 1fr;
+        gap: 2rem;
     }
 
     .about-actions {
         flex-direction: column;
+        gap: 1rem;
     }
 
     .about-actions .cta-button {
@@ -2237,15 +2429,72 @@ select:focus {
 
     .hero-actions {
         flex-direction: column;
+        gap: 1rem;
     }
 
     .hero-actions .cta-button {
         width: 100%;
     }
+
+    .project-3d-card {
+        padding: 1.25rem;
+    }
+
+    .project-3d-card img {
+        height: 180px;
+    }
+
+    .project-3d-card .text {
+        font-size: 1.2rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .project-3d-card p {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .contact-form {
+        padding: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .floating-contact-item {
+        padding: 0.75rem;
+    }
+
+    .contact-availability {
+        margin-top: 1.5rem;
+    }
+
+    .skill-item {
+        margin-bottom: 1.5rem;
+    }
+
+    .learning-section,
+    .learning-goals {
+        margin-top: 1.5rem;
+    }
+
+    .skills-tags {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .about .text {
+        font-size: 1.5rem;
+    }
 }
 
 @media (max-width: 480px) {
     .max-width {
+        padding: 0 1rem;
+    }
+
+    .navbar .max-width {
         padding: 0 1rem;
     }
 
@@ -2259,12 +2508,23 @@ select:focus {
         padding: 0;
     }
 
+    .home .text-1 {
+        font-size: 1rem;
+    }
+
     .home .text-2 {
         font-size: 1.75rem;
+        line-height: 1.2;
     }
 
     .home .text-3 {
         font-size: 1.1rem;
+    }
+
+    .hero-description {
+        font-size: 0.95rem;
+        padding: 0;
+        line-height: 1.6;
     }
 
     .orbital-system {
@@ -2323,9 +2583,193 @@ select:focus {
 
     .projects-grid {
         grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+
+    .project-3d-card {
+        padding: 1rem;
+        min-height: 420px;
+    }
+
+    .project-3d-card img {
+        height: 160px;
+        margin-bottom: 1rem;
+    }
+
+    .project-3d-card .text {
+        font-size: 1.1rem;
+    }
+
+    .project-3d-card p {
+        font-size: 0.85rem;
     }
 
     .floating-shapes .shape {
         display: none;
+    }
+
+    .section-header {
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .about-image-3d {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .imageContent {
+        width: 100%;
+    }
+
+    .about .text {
+        font-size: 1.3rem;
+    }
+
+    .about p,
+    .skills p {
+        font-size: 0.95rem;
+    }
+
+    .contact-form {
+        padding: 1rem;
+    }
+
+    .input-3d {
+        font-size: 0.95rem;
+        padding: 0.75rem;
+    }
+
+    .cta-button,
+    .send-btn {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.95rem;
+    }
+
+    .social-link {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    .footer-content {
+        gap: 1.5rem;
+    }
+
+    .footer-section h3,
+    .footer-section h4 {
+        font-size: 1.1rem;
+    }
+
+    .footer-section p {
+        font-size: 0.9rem;
+    }
+
+    .scroll-indicator {
+        bottom: 1rem;
+    }
+
+    .scroll-text {
+        font-size: 0.85rem;
+    }
+}
+
+/* Extra Small Devices */
+@media (max-width: 360px) {
+    .max-width {
+        padding: 0 0.75rem;
+    }
+
+    .home .text-2 {
+        font-size: 1.5rem;
+    }
+
+    .home .text-3 {
+        font-size: 1rem;
+    }
+
+    .section-header {
+        font-size: 1.3rem;
+    }
+
+    .project-3d-card {
+        min-height: 400px;
+    }
+
+    .orbital-system {
+        width: 180px;
+        height: 180px;
+    }
+
+    .animated-3d-shape {
+        width: 130px;
+        height: 130px;
+    }
+    
+    .animated-3d-shape .cube-face {
+        width: 65px;
+        height: 65px;
+    }
+    
+    .animated-3d-shape .cube-face.front {
+        transform: rotateY(0deg) translateZ(32.5px);
+    }
+    .animated-3d-shape .cube-face.back {
+        transform: rotateY(180deg) translateZ(32.5px);
+    }
+    .animated-3d-shape .cube-face.right {
+        transform: rotateY(90deg) translateZ(32.5px);
+    }
+    .animated-3d-shape .cube-face.left {
+        transform: rotateY(-90deg) translateZ(32.5px);
+    }
+    .animated-3d-shape .cube-face.top {
+        transform: rotateX(90deg) translateZ(32.5px);
+    }
+    .animated-3d-shape .cube-face.bottom {
+        transform: rotateX(-90deg) translateZ(32.5px);
+    }
+}
+
+/* Landscape Orientation for Mobile */
+@media (max-width: 968px) and (orientation: landscape) {
+    .home {
+        min-height: auto;
+        padding: 3rem 0;
+    }
+
+    .hero-visual {
+        display: none;
+    }
+
+    .home-content {
+        grid-template-columns: 1fr;
+    }
+
+    .orbital-system {
+        display: none;
+    }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .project-3d-card:hover .card-inner {
+        transform: none;
+    }
+
+    .magnetic-btn:hover {
+        transform: none;
+    }
+
+    .magnetic-btn:active {
+        transform: scale(0.95);
+    }
+
+    .nav-link-3d:hover {
+        transform: none;
+    }
+
+    .nav-link-3d:active {
+        transform: translateY(2px);
     }
 }

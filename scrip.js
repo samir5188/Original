@@ -180,19 +180,30 @@ function initOrbitalAnimations() {
     });
 }
 
-// Parallax Effects
+// Parallax Effects - Disabled on mobile to prevent scroll issues
 function initParallaxEffects() {
+    // Check if mobile device
+    const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        return; // Disable parallax on mobile
+    }
+    
     const parallaxElements = document.querySelectorAll('.floating-shapes .shape');
 
+    let parallaxTimeout;
     window.addEventListener('scroll', () => {
-        const scrolled = window.pageYOffset;
-        const rate = scrolled * -0.5;
+        clearTimeout(parallaxTimeout);
+        parallaxTimeout = setTimeout(() => {
+            const scrolled = window.pageYOffset;
+            const rate = scrolled * -0.5;
 
-        parallaxElements.forEach((element, index) => {
-            const speed = 0.5 + (index * 0.1);
-            element.style.transform = `translateY(${rate * speed}px)`;
-        });
-    });
+            parallaxElements.forEach((element, index) => {
+                const speed = 0.5 + (index * 0.1);
+                element.style.transform = `translateY(${rate * speed}px)`;
+            });
+        }, 16); // Debounce for performance
+    }, { passive: true });
 }
 
 // Theme Toggle Functionality
@@ -238,19 +249,41 @@ function initLazyLoading() {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     const img = entry.target;
-                    img.src = img.getAttribute('data-src');
-                    img.classList.add('lazy-loaded');
+                    const dataSrc = img.getAttribute('data-src');
+                    
+                    if (dataSrc) {
+                        // Create new image to test if it loads
+                        const testImg = new Image();
+                        testImg.onload = function() {
+                            img.src = dataSrc;
+                            img.classList.add('lazy-loaded');
+                            img.removeAttribute('data-src');
+                        };
+                        testImg.onerror = function() {
+                            // Image failed to load - handled gracefully
+                            // Keep placeholder or show error
+                            img.classList.add('lazy-error');
+                        };
+                        testImg.src = dataSrc;
+                    }
+                    
                     observer.unobserve(img);
                 }
             });
+        }, {
+            rootMargin: '50px'
         });
 
         lazyImages.forEach(img => imageObserver.observe(img));
     } else {
         // Fallback for older browsers
         lazyImages.forEach(img => {
-            img.src = img.getAttribute('data-src');
-            img.classList.add('lazy-loaded');
+            const dataSrc = img.getAttribute('data-src');
+            if (dataSrc) {
+                img.src = dataSrc;
+                img.classList.add('lazy-loaded');
+                img.removeAttribute('data-src');
+            }
         });
     }
 }
@@ -258,12 +291,18 @@ function initLazyLoading() {
 // Scroll Reveal Animations
 function initScrollReveal() {
     const reveals = document.querySelectorAll('.reveal');
+    
+    // Check if mobile device
+    const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     if ('IntersectionObserver' in window) {
         const revealObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    entry.target.classList.add('active');
+                    // Use requestAnimationFrame to prevent scroll jumps
+                    requestAnimationFrame(() => {
+                        entry.target.classList.add('active');
+                    });
 
                     // Add staggered animation for skill items
                     if (entry.target.classList.contains('skill-item')) {
@@ -276,14 +315,15 @@ function initScrollReveal() {
                             item.classList.contains('active')
                         );
                         if (visibleSkillItems.length === allSkillItems.length && !skillsAnimated) {
-                            setTimeout(() => animateSkillBars(), 300);
+                            // Delay longer on mobile to prevent scroll issues
+                            setTimeout(() => animateSkillBars(), isMobile ? 500 : 300);
                         }
                     }
                 }
             });
         }, {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
+            threshold: isMobile ? 0.05 : 0.1,
+            rootMargin: isMobile ? '0px' : '0px 0px -50px 0px'
         });
 
         reveals.forEach(reveal => revealObserver.observe(reveal));
@@ -348,14 +388,19 @@ function validateField(field, showError = false) {
 }
 
 // Scroll Progress Indicator
+let scrollProgressTimeout;
 function updateScrollProgress() {
-    const progressBar = document.querySelector('.scroll-bar');
-    if (!progressBar) return;
+    // Debounce scroll updates to prevent performance issues
+    clearTimeout(scrollProgressTimeout);
+    scrollProgressTimeout = setTimeout(() => {
+        const progressBar = document.querySelector('.scroll-bar');
+        if (!progressBar) return;
 
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-    progressBar.style.width = scrollPercent + '%';
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        progressBar.style.width = scrollPercent + '%';
+    }, 10);
 }
 
 // Form Validation
@@ -429,7 +474,7 @@ function initScreenshotProtection() {
 function initTypingAnimation2() {
     const typingElement = document.querySelector(".typing-2");
     if (!typingElement) {
-        console.warn('Typing-2 element not found');
+            // Typing-2 element not found
         return false;
     }
     
@@ -450,7 +495,7 @@ function initTypingAnimation2() {
     
     // Check if Typed is available
     if (typeof Typed === 'undefined') {
-        console.warn('Typed.js not loaded for typing-2, using fallback');
+            // Typed.js not loaded for typing-2, using fallback
         return false;
     }
     
@@ -469,10 +514,10 @@ function initTypingAnimation2() {
             startDelay: 500
         });
         typingElement.classList.add('typed');
-        console.log('Typed.js initialized successfully for typing-2');
+            // Typed.js initialized successfully for typing-2
         return true;
     } catch (e) {
-        console.error('Typed.js initialization error for typing-2:', e);
+            // Typed.js initialization error for typing-2
         // Fallback: show static text
         typingElement.textContent = 'IT Student';
         return false;
@@ -481,29 +526,41 @@ function initTypingAnimation2() {
 
 // jQuery Dependent Features
 function initJQueryFeatures() {
-    // Sticky navbar on scroll
+    // Sticky navbar on scroll - debounced for mobile
+    let scrollTimeout;
     $(window).scroll(function () {
-        if (this.scrollY > 20) {
-            $('.navbar').addClass("sticky");
-        } else {
-            $('.navbar').removeClass("sticky");
-        }
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            if (this.scrollY > 20) {
+                $('.navbar').addClass("sticky");
+            } else {
+                $('.navbar').removeClass("sticky");
+            }
 
-        // Scroll-up button show/hide
-        if (this.scrollY > 500) {
-            $('.scroll-up-btn').addClass("show");
-        } else {
-            $('.scroll-up-btn').removeClass("show");
-        }
+            // Scroll-up button show/hide
+            if (this.scrollY > 500) {
+                $('.scroll-up-btn').addClass("show");
+            } else {
+                $('.scroll-up-btn').removeClass("show");
+            }
 
-        // Update scroll progress
-        updateScrollProgress();
+            // Update scroll progress
+            updateScrollProgress();
+        }, 16); // ~60fps
     });
 
-    // Slide-up script
-    $('.scroll-up-btn').click(function () {
+    // Slide-up script with keyboard support
+    $('.scroll-up-btn').on('click', function () {
         $('html, body').animate({ scrollTop: 0 }, 800);
         $('html').css("scrollBehavior", "auto");
+    });
+    
+    // Keyboard accessibility for scroll-up button
+    $('.scroll-up-btn').on('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            $(this).trigger('click');
+        }
     });
 
     // Smooth scroll for navbar links
@@ -521,7 +578,7 @@ function initJQueryFeatures() {
     function initTypingAnimation() {
         const typingElement = document.querySelector(".typing");
         if (!typingElement) {
-            console.warn('Typing element not found');
+            // Typing element not found
             return false;
         }
         
@@ -542,7 +599,7 @@ function initJQueryFeatures() {
         
         // Check if Typed is available
         if (typeof Typed === 'undefined') {
-            console.warn('Typed.js not loaded, using fallback');
+            // Typed.js not loaded, using fallback
             return false;
         }
         
@@ -561,10 +618,10 @@ function initJQueryFeatures() {
                 startDelay: 500
             });
             typingElement.classList.add('typed');
-            console.log('Typed.js initialized successfully');
+            // Typed.js initialized successfully
             return true;
         } catch (e) {
-            console.error('Typed.js initialization error:', e);
+            // Typed.js initialization error
             // Fallback: show static text
             typingElement.textContent = 'IT Student';
             return false;
@@ -572,13 +629,23 @@ function initJQueryFeatures() {
     }
     
     // Initialize immediately if jQuery is ready, otherwise wait
+    // Prevent focus changes that might cause scrolling
+    const preventScroll = () => {
+        const currentScroll = window.pageYOffset;
+        window.scrollTo(0, currentScroll);
+    };
+    
     if (typeof $ !== 'undefined') {
         $(document).ready(function() {
             // Wait for text-3 animation to complete, then initialize
             setTimeout(function() {
+                preventScroll();
                 if (!initTypingAnimation()) {
                     // Retry if first attempt failed
-                    setTimeout(initTypingAnimation, 1000);
+                    setTimeout(() => {
+                        preventScroll();
+                        initTypingAnimation();
+                    }, 1000);
                 }
             }, 1500);
         });
@@ -586,27 +653,44 @@ function initJQueryFeatures() {
         // Wait for DOM and libraries to load
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
+                preventScroll();
                 if (!initTypingAnimation()) {
-                    setTimeout(initTypingAnimation, 1000);
+                    setTimeout(() => {
+                        preventScroll();
+                        initTypingAnimation();
+                    }, 1000);
                 }
             }, 1500);
         });
     }
 
     // Initialize typing-2 animation
+    const preventScroll2 = () => {
+        const currentScroll = window.pageYOffset;
+        window.scrollTo(0, currentScroll);
+    };
+    
     if (typeof $ !== 'undefined') {
         $(document).ready(function() {
             setTimeout(function() {
+                preventScroll2();
                 if (!initTypingAnimation2()) {
-                    setTimeout(initTypingAnimation2, 1000);
+                    setTimeout(() => {
+                        preventScroll2();
+                        initTypingAnimation2();
+                    }, 1000);
                 }
             }, 1500);
         });
     } else {
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
+                preventScroll2();
                 if (!initTypingAnimation2()) {
-                    setTimeout(initTypingAnimation2, 1000);
+                    setTimeout(() => {
+                        preventScroll2();
+                        initTypingAnimation2();
+                    }, 1000);
                 }
             }, 1500);
         });
@@ -637,14 +721,14 @@ function animateSkillBars() {
         const percentElement = item.querySelector('.skill-percent');
         const progressBar = item.querySelector('.skill-progress');
         if (!percentElement || !progressBar) {
-            console.warn('Skill element missing percent or progress bar', item);
+            // Skill element missing percent or progress bar
             return;
         }
 
         const targetPercent = parseInt(percentElement.getAttribute('data-target') || progressBar.getAttribute('data-width') || 0, 10);
         
         if (targetPercent <= 0) {
-            console.warn('Invalid target percent:', targetPercent);
+            // Invalid target percent
             return;
         }
 
@@ -710,12 +794,12 @@ function initSkillWaypoint() {
 
     observer.observe(skillsSection);
 
-    // Backup: Also check on scroll
-    let scrollTimeout;
+    // Backup: Also check on scroll - debounced for mobile
+    let skillScrollTimeout;
     window.addEventListener('scroll', () => {
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(checkAndAnimateSkills, 100);
-    });
+        clearTimeout(skillScrollTimeout);
+        skillScrollTimeout = setTimeout(checkAndAnimateSkills, 150);
+    }, { passive: true });
 
     // Check immediately if already in view
     setTimeout(checkAndAnimateSkills, 500);
@@ -734,7 +818,7 @@ function initSkillWaypoint() {
                 offset: '75%'
             });
         } catch (e) {
-            console.log('Waypoint not available, using Intersection Observer');
+            // Waypoint not available, using Intersection Observer
         }
     }
 }
@@ -829,7 +913,7 @@ function sendMail(event) {
                 setTimeout(() => errorMsg.remove(), 500);
             }, 5000);
 
-            console.error("EmailJS Error:", error);
+            // EmailJS Error occurred
         });
 
     return false;
@@ -862,8 +946,8 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Update scroll progress on scroll
-window.addEventListener('scroll', updateScrollProgress);
+// Update scroll progress on scroll - use passive listener
+window.addEventListener('scroll', updateScrollProgress, { passive: true });
 
 // Handle page load animations
 window.addEventListener('load', function () {
